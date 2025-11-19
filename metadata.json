@@ -1,0 +1,5 @@
+{
+  "name": "FitGenius AI",
+  "description": "Personalized workout and meal planner powered by Gemini AI. Input your stats and goals to receive a structured fitness roadmap.",
+  "requestFramePermissions": []
+}
