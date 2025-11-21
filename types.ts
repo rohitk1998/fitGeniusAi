@@ -1,3 +1,4 @@
+
 export enum GoalType {
   LOSE_WEIGHT = 'Lose Weight',
   GAIN_MUSCLE = 'Gain Muscle',
@@ -34,12 +35,23 @@ export interface DailyPlan {
   exercises: RoutineItem[];
 }
 
+export interface MealMacro {
+  name: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+  fiber: number;
+}
+
 export interface NutritionInfo {
   dailyCalories: number;
   protein: string;
   carbs: string;
   fats: string;
+  fiber: string;
   keyFoods: string[];
+  exampleMeals: MealMacro[];
 }
 
 export interface Milestone {
@@ -53,4 +65,39 @@ export interface FitnessResponse {
   nutrition: NutritionInfo;
   weeklySchedule: DailyPlan[];
   milestones: Milestone[];
+}
+
+export interface Meal {
+  id: string;
+  name: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fats: number;
+  fiber: number;
+  timestamp: Date;
+}
+
+// --- NEW TYPES FOR SLEEP & STREAKS ---
+
+export interface SleepLog {
+  id: string;
+  date: string;
+  hours: number;
+  quality: 'Poor' | 'Fair' | 'Good' | 'Excellent';
+  soreness: 'None' | 'Low' | 'Medium' | 'High';
+  readinessScore?: number;
+  aiFeedback?: string;
+}
+
+export interface RecoveryAnalysis {
+  readinessScore: number;
+  summary: string;
+  recommendation: 'Rest' | 'Active Recovery' | 'Maintain' | 'Push Hard';
+  workoutAdjustment: string;
+}
+
+export interface ActivityRecord {
+  date: string; // YYYY-MM-DD
+  actions: ('planner' | 'meal' | 'sleep')[];
 }
