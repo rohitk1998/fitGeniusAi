@@ -1,32 +1,67 @@
 
 export enum GoalType {
-  LOSE_WEIGHT = 'Lose Weight',
-  GAIN_MUSCLE = 'Gain Muscle',
-  MAINTAIN = 'Maintain & Tone',
-  IMPROVE_STAMINA = 'Improve Stamina'
+  LOSE_WEIGHT = 'Fat Loss',
+  GAIN_MUSCLE = 'Lean Bulking',
+  RECOMP = 'Body Recomposition',
+  STAMINA = 'Athletic Performance'
 }
 
 export enum ActivityLevel {
-  SEDENTARY = 'Sedentary (Office job)',
-  LIGHTLY_ACTIVE = 'Lightly Active (1-2 days/week)',
-  MODERATELY_ACTIVE = 'Moderately Active (3-5 days/week)',
-  VERY_ACTIVE = 'Very Active (6-7 days/week)'
+  SEDENTARY = 'Sedentary (Desk job)',
+  LIGHT = 'Lightly Active',
+  MODERATE = 'Moderately Active',
+  HIGH = 'Highly Active',
+  ATHLETE = 'Athlete'
+}
+
+export enum Gender {
+  MALE = 'Male',
+  FEMALE = 'Female',
+  OTHER = 'Other'
+}
+
+export enum ExperienceLevel {
+  BEGINNER = 'Beginner',
+  INTERMEDIATE = 'Intermediate',
+  ADVANCED = 'Advanced'
 }
 
 export interface UserProfile {
+  // Step 1: Goals
+  goal: GoalType;
+  timeline: string; // e.g. "16 weeks"
+  quantifiableTarget: string; // e.g. "Lose 5kg"
+
+  // Step 2: Profile
   age: number;
+  gender: Gender;
   height: number; // cm
   weight: number; // kg
-  goal: GoalType;
-  timeline: number; // months
+  bodyFat: string; // "15%" or "N/A"
+  dietaryRestrictions: string;
+  medicalConditions: string;
+
+  // Step 3: Fitness
+  experience: ExperienceLevel;
+  frequency: number; // days per week
+  equipment: string;
+  workoutSplit: string;
+  cardioPreference: string;
+
+  // Step 4: Lifestyle
   activityLevel: ActivityLevel;
-  additionalInfo: string;
+  sleepHours: number;
+  stressLevel: 'Low' | 'Medium' | 'High';
+  minutesPerSession: number;
+  mealPrepStyle: string;
+  cuisinePreference: string;
 }
 
 export interface RoutineItem {
   exercise: string;
   sets: string;
   reps: string;
+  rest: string; // Added rest time
 }
 
 export interface DailyPlan {
@@ -42,6 +77,7 @@ export interface MealMacro {
   carbs: number;
   fats: number;
   fiber: number;
+  imageKeyword?: string; // Added for visual generation
 }
 
 export interface NutritionInfo {
@@ -58,6 +94,8 @@ export interface Milestone {
   month: number;
   description: string;
   expectedResult: string;
+  habitToMaster: string; // New: Specific habit
+  motivationalQuote: string; // New: Motivation
 }
 
 export interface FitnessResponse {
@@ -77,8 +115,6 @@ export interface Meal {
   fiber: number;
   timestamp: Date;
 }
-
-// --- NEW TYPES FOR SLEEP & STREAKS ---
 
 export interface SleepLog {
   id: string;

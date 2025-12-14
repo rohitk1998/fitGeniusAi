@@ -7,16 +7,38 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const generateFitnessPlan = async (profile: UserProfile): Promise<FitnessResponse> => {
   const prompt = `
-    Create a personalized fitness and nutrition plan for a user with the following stats:
-    - Age: ${profile.age}
-    - Height: ${profile.height} cm
-    - Weight: ${profile.weight} kg
-    - Goal: ${profile.goal}
-    - Activity Level: ${profile.activityLevel}
-    - Target Timeline: ${profile.timeline} months
-    - Specific Preferences/Injuries: ${profile.additionalInfo || "None"}
+    Create a highly personalized fitness and nutrition plan based on the following deep-dive user profile:
 
-    Provide a concise summary, a macronutrient breakdown (including fiber), 3 specific example meals with calculated macros that fit the diet, a sample workout schedule for a week, and monthly milestones.
+    1. GOALS & TIMELINE
+    - Goal: ${profile.goal}
+    - Specific Target: ${profile.quantifiableTarget}
+    - Timeline: ${profile.timeline}
+
+    2. BIOMETRICS
+    - Age: ${profile.age}, Gender: ${profile.gender}
+    - Height: ${profile.height}cm, Weight: ${profile.weight}kg
+    - Body Fat: ${profile.bodyFat}
+    - Medical/Injuries: ${profile.medicalConditions}
+    - Dietary Restrictions: ${profile.dietaryRestrictions}
+
+    3. TRAINING PARAMETERS
+    - Experience: ${profile.experience}
+    - Frequency: ${profile.frequency} days/week
+    - Equipment: ${profile.equipment}
+    - Split Preference: ${profile.workoutSplit}
+    - Cardio: ${profile.cardioPreference}
+
+    4. LIFESTYLE
+    - Activity Level: ${profile.activityLevel}
+    - Sleep Avg: ${profile.sleepHours}hrs
+    - Stress: ${profile.stressLevel}
+    - Time Available: ${profile.minutesPerSession} mins/session
+    - Meal Prep: ${profile.mealPrepStyle}
+    - Cuisine: ${profile.cuisinePreference}
+
+    Provide a concise summary, a macronutrient breakdown (including fiber), 3 specific example meals with calculated macros AND a simple visual keyword (e.g. "grilled chicken salad") for image generation.
+    Provide a sample workout schedule for a week.
+    Provide monthly milestones that include a specific "Habit to Master" and a short motivational quote.
   `;
 
   const response = await ai.models.generateContent({
@@ -39,7 +61,7 @@ export const generateFitnessPlan = async (profile: UserProfile): Promise<Fitness
               keyFoods: { 
                 type: Type.ARRAY, 
                 items: { type: Type.STRING },
-                description: "List of recommended foods"
+                description: "List of recommended foods based on cuisine preference"
               },
               exampleMeals: {
                 type: Type.ARRAY,
@@ -52,9 +74,10 @@ export const generateFitnessPlan = async (profile: UserProfile): Promise<Fitness
                     protein: { type: Type.NUMBER },
                     carbs: { type: Type.NUMBER },
                     fats: { type: Type.NUMBER },
-                    fiber: { type: Type.NUMBER }
+                    fiber: { type: Type.NUMBER },
+                    imageKeyword: { type: Type.STRING, description: "A simple 2-3 word keyword describing the food visually for an image generator (e.g. 'Oatmeal with berries')" }
                   },
-                  required: ["name", "calories", "protein", "carbs", "fats", "fiber"]
+                  required: ["name", "calories", "protein", "carbs", "fats", "fiber", "imageKeyword"]
                 }
               }
             },
@@ -75,9 +98,10 @@ export const generateFitnessPlan = async (profile: UserProfile): Promise<Fitness
                     properties: {
                       exercise: { type: Type.STRING },
                       sets: { type: Type.STRING },
-                      reps: { type: Type.STRING }
+                      reps: { type: Type.STRING },
+                      rest: { type: Type.STRING, description: "e.g. '60s'"}
                     },
-                    required: ["exercise", "sets", "reps"]
+                    required: ["exercise", "sets", "reps", "rest"]
                   }
                 }
               },
@@ -92,9 +116,11 @@ export const generateFitnessPlan = async (profile: UserProfile): Promise<Fitness
               properties: {
                 month: { type: Type.NUMBER },
                 description: { type: Type.STRING },
-                expectedResult: { type: Type.STRING, description: "e.g., 'Weight: 78kg'" }
+                expectedResult: { type: Type.STRING, description: "e.g., 'Weight: 78kg'" },
+                habitToMaster: { type: Type.STRING, description: "A specific behavior to lock in this month" },
+                motivationalQuote: { type: Type.STRING, description: "Short punchy quote" }
               },
-              required: ["month", "description", "expectedResult"]
+              required: ["month", "description", "expectedResult", "habitToMaster", "motivationalQuote"]
             }
           }
         },

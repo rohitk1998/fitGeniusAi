@@ -28,13 +28,11 @@ const SleepTracker: React.FC<SleepTrackerProps> = ({ onBack, onLogActivity }) =>
     localStorage.setItem('fitaura_sleep', JSON.stringify(logs));
   }, [logs]);
 
-  // Load latest analysis if exists for today
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
     const todayLog = logs.find(l => l.date === today);
     if (todayLog && todayLog.readinessScore) {
-        // We could reconstruct the analysis object partially or store it fully. 
-        // For now, we just show the score from the log if available.
+       // logic to preload cached analysis if needed
     }
   }, [logs]);
 
@@ -54,7 +52,6 @@ const SleepTracker: React.FC<SleepTrackerProps> = ({ onBack, onLogActivity }) =>
         aiFeedback: analysis.workoutAdjustment
       };
 
-      // Remove existing log for today if any, replace with new
       const filteredLogs = logs.filter(l => l.date !== newLog.date);
       setLogs([newLog, ...filteredLogs]);
       onLogActivity('sleep');
@@ -67,9 +64,9 @@ const SleepTracker: React.FC<SleepTrackerProps> = ({ onBack, onLogActivity }) =>
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-emerald-400';
-    if (score >= 60) return 'text-yellow-400';
-    return 'text-red-400';
+    if (score >= 80) return 'text-emerald-500';
+    if (score >= 60) return 'text-yellow-500';
+    return 'text-red-500';
   };
 
   const getRingColor = (score: number) => {
@@ -79,20 +76,20 @@ const SleepTracker: React.FC<SleepTrackerProps> = ({ onBack, onLogActivity }) =>
   };
 
   return (
-    <div className="h-full w-full bg-[#0f172a] flex flex-col">
+    <div className="h-full w-full bg-gray-50 flex flex-col">
       {/* Header */}
-      <div className="flex-none px-6 py-4 flex items-center gap-4 border-b border-slate-800 bg-slate-900/80 backdrop-blur-xl z-10">
+      <div className="flex-none px-6 py-4 flex items-center gap-4 border-b border-gray-200 bg-white z-10">
         <button 
           onClick={onBack}
-          className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors"
+          className="p-2 hover:bg-gray-100 rounded-lg text-slate-500 hover:text-slate-900 transition-colors"
         >
           <ArrowLeft size={20} />
         </button>
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            Recovery Lab <Moon size={18} className="text-indigo-400"/>
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            Recovery Lab <Moon size={18} className="text-indigo-500"/>
           </h2>
-          <p className="text-xs text-slate-400">Sleep tracking & readiness analysis</p>
+          <p className="text-xs text-slate-500">Sleep tracking & readiness analysis</p>
         </div>
       </div>
 
@@ -100,17 +97,17 @@ const SleepTracker: React.FC<SleepTrackerProps> = ({ onBack, onLogActivity }) =>
         <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
           
           {/* Left: Input Module */}
-          <div className="bg-slate-800/50 border border-slate-700 rounded-3xl p-6 space-y-8 backdrop-blur-sm">
+          <div className="bg-white border border-gray-200 rounded-3xl p-6 space-y-8 shadow-sm">
             <div>
-              <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                <Activity size={18} className="text-indigo-400"/> Daily Input
+              <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+                <Activity size={18} className="text-indigo-500"/> Daily Input
               </h3>
               
               {/* Hours Slider */}
               <div className="mb-6">
                 <div className="flex justify-between mb-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">Duration</label>
-                  <span className="text-indigo-400 font-bold text-lg">{input.hours} hrs</span>
+                  <span className="text-indigo-600 font-bold text-lg">{input.hours} hrs</span>
                 </div>
                 <input 
                   type="range" 
@@ -119,7 +116,7 @@ const SleepTracker: React.FC<SleepTrackerProps> = ({ onBack, onLogActivity }) =>
                   step="0.5" 
                   value={input.hours}
                   onChange={(e) => setInput({...input, hours: parseFloat(e.target.value)})}
-                  className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                 />
               </div>
 
@@ -131,10 +128,10 @@ const SleepTracker: React.FC<SleepTrackerProps> = ({ onBack, onLogActivity }) =>
                     <button
                       key={q}
                       onClick={() => setInput({...input, quality: q as any})}
-                      className={`py-2 rounded-xl text-xs font-bold transition-all ${
+                      className={`py-2 rounded-xl text-xs font-bold transition-all border ${
                         input.quality === q 
-                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25' 
-                        : 'bg-slate-900 text-slate-400 hover:bg-slate-700'
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200' 
+                        : 'bg-white text-slate-600 border-gray-200 hover:border-gray-300'
                       }`}
                     >
                       {q}
@@ -151,10 +148,10 @@ const SleepTracker: React.FC<SleepTrackerProps> = ({ onBack, onLogActivity }) =>
                     <button
                       key={s}
                       onClick={() => setInput({...input, soreness: s as any})}
-                      className={`py-2 rounded-xl text-xs font-bold transition-all ${
+                      className={`py-2 rounded-xl text-xs font-bold transition-all border ${
                         input.soreness === s 
-                        ? 'bg-rose-600 text-white shadow-lg shadow-rose-500/25' 
-                        : 'bg-slate-900 text-slate-400 hover:bg-slate-700'
+                        ? 'bg-rose-500 text-white border-rose-500 shadow-lg shadow-rose-200' 
+                        : 'bg-white text-slate-600 border-gray-200 hover:border-gray-300'
                       }`}
                     >
                       {s}
@@ -166,7 +163,7 @@ const SleepTracker: React.FC<SleepTrackerProps> = ({ onBack, onLogActivity }) =>
               <button
                 onClick={handleAnalyze}
                 disabled={isAnalyzing}
-                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-4 rounded-xl transition-all transform active:scale-[0.99] flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 disabled:opacity-50"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl transition-all transform active:scale-[0.99] flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 disabled:opacity-50"
               >
                 {isAnalyzing ? <Loader2 className="animate-spin" /> : <Sparkles size={18} />}
                 Analyze Recovery
@@ -177,25 +174,23 @@ const SleepTracker: React.FC<SleepTrackerProps> = ({ onBack, onLogActivity }) =>
           {/* Right: Analysis Result */}
           <div className="space-y-6">
             {/* Score Card */}
-            <div className="bg-slate-800/50 border border-slate-700 rounded-3xl p-6 relative overflow-hidden min-h-[200px] flex flex-col items-center justify-center">
+            <div className="bg-white border border-gray-200 rounded-3xl p-6 relative overflow-hidden min-h-[200px] flex flex-col items-center justify-center shadow-sm">
                {!latestAnalysis && logs.length > 0 && logs[0].date === new Date().toISOString().split('T')[0] ? (
-                  // Show today's cached log if available and no new analysis just happened
                    <div className="text-center">
-                      <h4 className="text-slate-400 text-xs font-bold uppercase mb-4">Today's Readiness</h4>
+                      <h4 className="text-slate-500 text-xs font-bold uppercase mb-4">Today's Readiness</h4>
                       <div className={`text-6xl font-bold mb-2 ${getScoreColor(logs[0].readinessScore || 0)}`}>
                         {logs[0].readinessScore}
                       </div>
-                      <div className="text-slate-300 text-sm max-w-[200px] mx-auto">{logs[0].aiFeedback}</div>
+                      <div className="text-slate-600 text-sm max-w-[200px] mx-auto">{logs[0].aiFeedback}</div>
                    </div>
                ) : latestAnalysis ? (
-                 // Show fresh analysis
                  <div className="w-full">
                     <div className="flex justify-between items-center mb-6">
-                      <h4 className="text-slate-400 text-xs font-bold uppercase">Readiness Score</h4>
-                      <div className={`px-3 py-1 rounded-full text-xs font-bold bg-opacity-20 border border-opacity-30 ${
-                        latestAnalysis.recommendation === 'Push Hard' ? 'bg-emerald-500 text-emerald-400 border-emerald-500' :
-                        latestAnalysis.recommendation === 'Rest' ? 'bg-red-500 text-red-400 border-red-500' :
-                        'bg-indigo-500 text-indigo-400 border-indigo-500'
+                      <h4 className="text-slate-500 text-xs font-bold uppercase">Readiness Score</h4>
+                      <div className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                        latestAnalysis.recommendation === 'Push Hard' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                        latestAnalysis.recommendation === 'Rest' ? 'bg-red-50 text-red-600 border-red-200' :
+                        'bg-indigo-50 text-indigo-600 border-indigo-200'
                       }`}>
                         {latestAnalysis.recommendation}
                       </div>
@@ -204,7 +199,7 @@ const SleepTracker: React.FC<SleepTrackerProps> = ({ onBack, onLogActivity }) =>
                     <div className="flex items-center gap-6">
                        <div className="relative w-32 h-32 flex-shrink-0">
                           <svg className="w-full h-full transform -rotate-90">
-                            <circle cx="64" cy="64" r="60" fill="none" stroke="#1e293b" strokeWidth="8" />
+                            <circle cx="64" cy="64" r="60" fill="none" stroke="#f1f5f9" strokeWidth="8" />
                             <circle 
                               cx="64" cy="64" r="60" 
                               fill="none" 
@@ -215,44 +210,43 @@ const SleepTracker: React.FC<SleepTrackerProps> = ({ onBack, onLogActivity }) =>
                               className={`transition-all duration-1000 ${getRingColor(latestAnalysis.readinessScore)}`}
                             />
                           </svg>
-                          <div className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-white">
+                          <div className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-slate-800">
                             {latestAnalysis.readinessScore}
                           </div>
                        </div>
                        <div className="flex-1">
-                         <p className="text-sm text-slate-300 mb-2 leading-relaxed">{latestAnalysis.summary}</p>
-                         <div className="p-3 bg-slate-900/50 rounded-xl border border-slate-700/50">
-                            <div className="text-xs text-indigo-400 font-bold mb-1 flex items-center gap-1">
+                         <p className="text-sm text-slate-600 mb-2 leading-relaxed">{latestAnalysis.summary}</p>
+                         <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100">
+                            <div className="text-xs text-indigo-600 font-bold mb-1 flex items-center gap-1">
                               <Brain size={10} /> AI Adjustment
                             </div>
-                            <p className="text-xs text-slate-400">{latestAnalysis.workoutAdjustment}</p>
+                            <p className="text-xs text-slate-700">{latestAnalysis.workoutAdjustment}</p>
                          </div>
                        </div>
                     </div>
                  </div>
                ) : (
-                 // Empty State
                  <div className="text-center opacity-40">
-                   <Battery size={48} className="mx-auto mb-2"/>
-                   <p className="text-sm">No data for today</p>
+                   <Battery size={48} className="mx-auto mb-2 text-slate-800"/>
+                   <p className="text-sm text-slate-800">No data for today</p>
                  </div>
                )}
             </div>
 
             {/* History List */}
-            <div className="bg-slate-800/30 border border-slate-700 rounded-3xl p-6 h-[250px] overflow-y-auto custom-scrollbar">
-              <h4 className="text-xs font-bold text-slate-500 uppercase mb-4 sticky top-0 bg-slate-800/0 backdrop-blur-sm py-2">Recent Logs</h4>
+            <div className="bg-white border border-gray-200 rounded-3xl p-6 h-[250px] overflow-y-auto custom-scrollbar shadow-sm">
+              <h4 className="text-xs font-bold text-slate-500 uppercase mb-4 sticky top-0 bg-white py-2">Recent Logs</h4>
               <div className="space-y-3">
                 {logs.map((log) => (
-                  <div key={log.id} className="flex items-center justify-between p-3 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                  <div key={log.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
                     <div className="flex items-center gap-3">
                        <div className={`w-2 h-10 rounded-full ${getScoreColor(log.readinessScore || 0).replace('text', 'bg')}`}></div>
                        <div>
-                         <div className="text-sm text-white font-bold">{log.date}</div>
+                         <div className="text-sm text-slate-900 font-bold">{log.date}</div>
                          <div className="text-xs text-slate-500">{log.hours}h • {log.quality}</div>
                        </div>
                     </div>
-                    <div className="text-lg font-bold text-white opacity-50">{log.readinessScore}</div>
+                    <div className="text-lg font-bold text-slate-800 opacity-50">{log.readinessScore}</div>
                   </div>
                 ))}
               </div>
