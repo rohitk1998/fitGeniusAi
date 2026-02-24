@@ -1,25 +1,21 @@
-
 import React, { useState, useEffect } from 'react';
-import { Brain, Dumbbell, Utensils, Moon, Zap, Trophy, Flame } from 'lucide-react';
+import { Home, Dumbbell, Utensils, Moon, Trophy, User, LogOut, Search, Bell, Settings } from 'lucide-react';
 import { FitnessResponse, ActivityRecord } from './types';
 import ResultView from './components/ResultView';
 import CalorieTracker from './components/CalorieTracker';
 import SleepTracker from './components/SleepTracker';
 import StreakStats from './components/StreakStats';
-import HeroSlideshow from './components/hub/HeroSlideshow';
-import FloatingNav from './components/hub/FloatingNav';
-import FeatureSection from './components/hub/FeatureSection';
 import PlannerWizard from './components/planner/PlannerWizard';
-import { FoodMarquee, GymMarquee } from './components/planner/InfiniteMarquee';
 
-type ViewState = 'hub' | 'planner' | 'tracker' | 'sleep' | 'stats';
+type TabType = 'dashboard' | 'planner' | 'fuel' | 'recovery' | 'profile';
 
 const App: React.FC = () => {
-  const [view, setView] = useState<ViewState>('hub');
-  const [result, setResult] = useState<FitnessResponse | null>(null);
-  const [activeSection, setActiveSection] = useState<string>('hero');
+  const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  const [result, setResult] = useState<FitnessResponse | null>(() => {
+    const saved = localStorage.getItem('fitaura_plan');
+    return saved ? JSON.parse(saved) : null;
+  });
 
-  // Global Activity Tracker State
   const [activityLog, setActivityLog] = useState<ActivityRecord[]>(() => {
     const saved = localStorage.getItem('fitaura_activity');
     return saved ? JSON.parse(saved) : [];
@@ -29,27 +25,11 @@ const App: React.FC = () => {
     localStorage.setItem('fitaura_activity', JSON.stringify(activityLog));
   }, [activityLog]);
 
-  // Scroll Spy Logic
   useEffect(() => {
-    if (view !== 'hub') return;
-    const container = document.getElementById('hub-container');
-    if (!container) return;
-
-    const handleScroll = () => {
-       const scrollPos = container.scrollTop + window.innerHeight / 3; 
-       const sections = ['planner', 'tracker', 'sleep', 'stats'];
-       let current = 'hero';
-       if (container.scrollTop > window.innerHeight * 0.5) {
-          for (const sec of sections) {
-             const el = document.getElementById(sec);
-             if (el && el.offsetTop <= scrollPos) current = sec;
-          }
-       }
-       setActiveSection(current);
-    };
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, [view]);
+    if (result) {
+      localStorage.setItem('fitaura_plan', JSON.stringify(result));
+    }
+  }, [result]);
 
   const logActivity = (type: 'planner' | 'meal' | 'sleep') => {
     const today = new Date().toISOString().split('T')[0];
@@ -69,220 +49,170 @@ const App: React.FC = () => {
     });
   };
 
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) element.scrollIntoView({ behavior: 'smooth' });
-  };
+  const SidebarItem = ({ id, icon, label }: { id: TabType, icon: React.ReactNode, label: string }) => (
+    <button 
+      onClick={() => setActiveTab(id)}
+      className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 ${
+        activeTab === id 
+        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' 
+        : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+      }`}
+    >
+      {icon}
+      <span className="font-bold text-sm tracking-tight">{label}</span>
+    </button>
+  );
 
-  const handlePlannerComplete = (plan: FitnessResponse) => {
-    setResult(plan);
-    // Note: The planner view in this structure handles display of result internally 
-    // or we might need to adjust based on if we want to separate Wizard vs Result.
-    // In this refactor, if result is present, we show ResultView.
+  const renderActiveScreen = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return (
+          <div className="flex-1 p-8 space-y-8 animate-fade-in overflow-y-auto no-scrollbar">
+            <header className="flex justify-between items-center">
+              <div>
+                <h1 className="text-4xl font-black text-slate-900 tracking-tight">Welcome Back, Alpha</h1>
+                <p className="text-slate-500 font-medium">Here's your bio-status for today.</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <button className="p-3 bg-white rounded-2xl border border-slate-100 text-slate-400 hover:text-slate-900 transition-colors">
+                  <Bell size={20} />
+                </button>
+                <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white">
+                  <User size={24} />
+                </div>
+              </div>
+            </header>
+
+            {/* Desktop Widget Grid */}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              
+              {/* Macro Overview */}
+              <div className="col-span-1 xl:col-span-2 bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm flex flex-col md:flex-row items-center gap-12">
+                <div className="relative w-48 h-48 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-full h-full transform -rotate-90">
+                    <circle cx="96" cy="96" r="80" fill="none" stroke="#f8fafc" strokeWidth="16" />
+                    <circle 
+                      cx="96" cy="96" r="80" 
+                      fill="none" stroke="#4f46e5" strokeWidth="16" 
+                      strokeDasharray={502} 
+                      strokeDashoffset={150} 
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute flex flex-col items-center">
+                    <span className="text-3xl font-black">1,840</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Calories In</span>
+                  </div>
+                </div>
+                <div className="flex-1 grid grid-cols-3 gap-6 w-full">
+                  <div className="space-y-1">
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Protein</div>
+                    <div className="text-2xl font-black text-slate-900">145g</div>
+                    <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden"><div className="w-[80%] h-full bg-blue-500"></div></div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Carbs</div>
+                    <div className="text-2xl font-black text-slate-900">210g</div>
+                    <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden"><div className="w-[60%] h-full bg-amber-500"></div></div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Fats</div>
+                    <div className="text-2xl font-black text-slate-900">65g</div>
+                    <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden"><div className="w-[40%] h-full bg-rose-500"></div></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recovery Quick Widget */}
+              <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white flex flex-col justify-between shadow-xl shadow-slate-200">
+                <div className="flex justify-between items-start">
+                   <div className="p-4 bg-white/10 rounded-3xl"><Moon size={24} className="text-indigo-400"/></div>
+                   <div className="text-right">
+                      <div className="text-3xl font-black">88%</div>
+                      <div className="text-[10px] font-bold uppercase text-indigo-300">Readiness Score</div>
+                   </div>
+                </div>
+                <div>
+                   <h4 className="font-bold mb-2">Prime to Push</h4>
+                   <p className="text-sm text-slate-400 leading-relaxed">Central nervous system is recovered. Ideal for a high-intensity session today.</p>
+                </div>
+              </div>
+
+              {/* Planner Shortcut */}
+              <div 
+                onClick={() => setActiveTab('planner')}
+                className="col-span-1 xl:col-span-3 bg-indigo-50 border border-indigo-100 p-8 rounded-[2.5rem] flex items-center justify-between cursor-pointer group hover:bg-indigo-100 transition-all"
+              >
+                <div className="flex items-center gap-6">
+                   <div className="p-6 bg-white rounded-3xl text-indigo-600 shadow-sm group-hover:scale-110 transition-transform">
+                      <Dumbbell size={32} />
+                   </div>
+                   <div>
+                      <h3 className="text-2xl font-black text-slate-900">Your Training Protocol</h3>
+                      <p className="text-slate-600 font-medium">{result ? 'View your personalized week-by-week guide.' : 'You haven\'t generated a plan yet. Let\'s fix that.'}</p>
+                   </div>
+                </div>
+                <button className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-sm group-hover:px-10 transition-all">
+                  {result ? 'Open Protocol' : 'Start Assessment'}
+                </button>
+              </div>
+
+            </div>
+          </div>
+        );
+      case 'planner':
+        return result ? (
+          <ResultView data={result} onReset={() => setResult(null)} onBack={() => setActiveTab('dashboard')} />
+        ) : (
+          <div className="flex-1 bg-white h-full relative overflow-hidden">
+            <PlannerWizard 
+              onBack={() => setActiveTab('dashboard')} 
+              onComplete={(p) => {setResult(p); setActiveTab('planner');}} 
+              onLogActivity={() => logActivity('planner')} 
+            />
+          </div>
+        );
+      case 'fuel':
+        return <CalorieTracker onBack={() => setActiveTab('dashboard')} plannerData={result} onLogActivity={() => logActivity('meal')} />;
+      case 'recovery':
+        return <SleepTracker onBack={() => setActiveTab('dashboard')} onLogActivity={() => logActivity('sleep')} />;
+      case 'profile':
+        return <StreakStats onBack={() => setActiveTab('dashboard')} activityData={activityLog} />;
+    }
   };
 
   return (
-    <div className="h-screen w-screen bg-white text-slate-900 font-['Inter'] selection:bg-indigo-500/20 relative overflow-hidden">
+    <div className="h-screen w-full flex bg-slate-50 overflow-hidden">
       
-      {/* HUB VIEW */}
-      {view === 'hub' && (
-        <div id="hub-container" className="h-full overflow-y-auto scroll-smooth relative">
-          <HeroSlideshow onStart={() => scrollToSection('planner')} />
-          <FloatingNav activeSection={activeSection} onNavigate={scrollToSection} />
-
-          {/* PLANNER SECTION */}
-          <FeatureSection 
-            id="planner"
-            title="Neural Workout Architect"
-            description="Generate hyper-personalized training protocols based on your unique biometrics, equipment, and goals using Gemini 2.5."
-            icon={<Brain size={24} />}
-            colorClass="indigo"
-            buttonText="Create Protocol"
-            onAction={() => setView('planner')}
-            visualContent={(
-              <div className="relative h-full w-full p-6 overflow-hidden group-hover:scale-[1.02] transition-transform duration-700">
-                  <div className="grid grid-cols-2 gap-4 h-full">
-                      {/* Left Column */}
-                      <div className="space-y-4 flex flex-col">
-                          <img 
-                              src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=600&q=80" 
-                              className="w-full h-40 object-cover rounded-2xl shadow-lg transform group-hover:-translate-y-2 transition-transform duration-500 delay-75" 
-                              alt="Gym Workout"
-                          />
-                          <div className="bg-indigo-50 p-5 rounded-2xl border border-indigo-100 flex-1 flex flex-col justify-center relative overflow-hidden">
-                              <div className="absolute top-0 right-0 p-3 opacity-10">
-                                <Brain size={64} className="text-indigo-600"/>
-                              </div>
-                              <div className="flex items-center gap-2 mb-2">
-                                  <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
-                                  <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">AI Generating</span>
-                              </div>
-                              <div className="space-y-2">
-                                <div className="w-3/4 h-2 bg-indigo-200/50 rounded-full"></div>
-                                <div className="w-1/2 h-2 bg-indigo-200/50 rounded-full"></div>
-                                <div className="w-5/6 h-2 bg-indigo-200/50 rounded-full"></div>
-                              </div>
-                          </div>
-                      </div>
-
-                      {/* Right Column */}
-                      <div className="space-y-4 pt-8 flex flex-col">
-                          <div className="bg-slate-900 text-white p-5 rounded-2xl shadow-xl flex-1 flex flex-col justify-center relative overflow-hidden group-hover:shadow-2xl transition-shadow">
-                              <div className="relative z-10">
-                                  <div className="text-3xl font-black mb-1">PPL</div>
-                                  <div className="text-xs text-slate-400 font-bold uppercase">Split Detected</div>
-                              </div>
-                              <Dumbbell className="absolute -right-4 -bottom-4 text-slate-800 opacity-50 transform rotate-12" size={80} />
-                          </div>
-                          <img 
-                              src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80" 
-                              className="w-full h-40 object-cover rounded-2xl shadow-lg transform group-hover:translate-y-2 transition-transform duration-500 delay-100" 
-                              alt="Training"
-                          />
-                      </div>
-                  </div>
-              </div>
-            )}
-          />
-
-          {/* TRACKER SECTION */}
-          <FeatureSection 
-            id="tracker"
-            title="Precision Fueling"
-            description="Log meals with natural language. Our AI analyzes micronutrients and aligns them with your daily caloric and macro targets."
-            icon={<Utensils size={24} />}
-            colorClass="emerald"
-            buttonText="Open Tracker"
-            onAction={() => setView('tracker')}
-            reversed
-            visualContent={(
-                <div className="space-y-6 select-none pointer-events-none mt-4 group-hover:scale-[1.02] transition-transform p-8 relative">
-                    <div className="absolute top-0 right-0 p-6">
-                        <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center text-white">
-                            <Zap size={24} fill="currentColor" />
-                        </div>
-                    </div>
-                    <div>
-                        <div className="text-4xl font-bold text-slate-900 mb-2">2,450</div>
-                        <div className="text-sm font-bold text-slate-400 uppercase tracking-widest">Calories / Day</div>
-                    </div>
-                    <div className="h-4 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full w-3/4 bg-emerald-500 rounded-full"></div>
-                    </div>
-                </div>
-            )}
-          />
-
-          {/* SLEEP SECTION */}
-          <FeatureSection 
-            id="sleep"
-            title="Recovery Lab"
-            description="Understand your body's readiness. We analyze your sleep quality and soreness to suggest dynamic training adjustments."
-            icon={<Moon size={24} />}
-            colorClass="blue"
-            buttonText="Analyze Sleep"
-            onAction={() => setView('sleep')}
-            visualContent={(
-                <div className="flex items-center justify-center h-full p-8">
-                    <div className="relative w-48 h-48 select-none pointer-events-none group-hover:scale-105 transition-transform">
-                        <svg className="w-full h-full transform -rotate-90">
-                            <circle cx="96" cy="96" r="80" fill="none" stroke="#f1f5f9" strokeWidth="12" />
-                            <circle cx="96" cy="96" r="80" fill="none" stroke="#3b82f6" strokeWidth="12" strokeDasharray={502} strokeDashoffset={100} strokeLinecap="round" />
-                        </svg>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className="text-5xl font-bold text-slate-900">85</span>
-                            <span className="text-xs font-bold text-slate-400 uppercase mt-2">Readiness</span>
-                        </div>
-                    </div>
-                </div>
-            )}
-          />
-
-          {/* STATS SECTION */}
-          <FeatureSection 
-            id="stats"
-            title="Legacy & Streaks"
-            description="Gamify your consistency. Build your streak, earn badges, and visualize your monthly activity heatmap."
-            icon={<Trophy size={24} />}
-            colorClass="orange"
-            buttonText="View Stats"
-            onAction={() => setView('stats')}
-            reversed
-            visualContent={(
-                <div className="flex flex-col justify-between h-full p-8">
-                    <div className="flex items-end gap-4 mb-8 select-none pointer-events-none">
-                        <Flame className="text-orange-500 mb-1 group-hover:scale-110 transition-transform" size={48} />
-                        <div>
-                            <div className="text-6xl font-bold text-white leading-none">12</div>
-                            <div className="text-sm text-slate-500 font-bold uppercase tracking-widest">Day Streak</div>
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-7 gap-2 opacity-50 select-none pointer-events-none">
-                        {Array.from({length: 21}).map((_, i) => (
-                            <div key={i} className={`aspect-square rounded-md ${i % 3 === 0 ? 'bg-orange-500' : 'bg-slate-700'}`}></div>
-                        ))}
-                    </div>
-                </div>
-            )}
-          />
-
-          <footer className="pt-40 pb-12 flex flex-col items-center justify-center overflow-hidden">
-             <h1 className="text-[15vw] font-black text-slate-200 leading-none select-none tracking-tighter">FitAura</h1>
-             <div className="flex items-center gap-8 mt-12 text-slate-400 font-medium text-sm">
-                <span>© 2024 FitAura.AI</span>
-                <span>Powered by Gemini</span>
-                <span>Privacy</span>
-             </div>
-          </footer>
+      {/* DESKTOP SIDEBAR */}
+      <aside className="w-80 flex-none bg-white border-r border-slate-100 flex flex-col p-8 z-50">
+        <div className="flex items-center gap-3 mb-12 px-2">
+          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-200">
+            <Trophy size={20} />
+          </div>
+          <span className="text-xl font-black tracking-tighter">FitAura<span className="text-indigo-600">.AI</span></span>
         </div>
-      )}
 
-      {/* PLANNER VIEW */}
-      {view === 'planner' && (
-        <div className="relative w-full h-full flex items-center justify-center bg-white overflow-hidden">
-          {!result ? (
-              <div className="w-full h-full flex flex-row">
-                 <GymMarquee />
-                 <PlannerWizard 
-                    onBack={() => setView('hub')} 
-                    onComplete={handlePlannerComplete} 
-                    onLogActivity={() => logActivity('planner')}
-                 />
-                 <FoodMarquee />
-              </div>
-            ) : (
-              <div className="w-full h-full relative z-10 bg-gray-50">
-                 <ResultView 
-                   data={result} 
-                   onReset={() => { setResult(null); }} 
-                   onBack={() => setView('hub')}
-                 />
-              </div>
-            )}
+        <nav className="flex-1 space-y-2">
+          <SidebarItem id="dashboard" icon={<Home size={20}/>} label="Command Center" />
+          <SidebarItem id="planner" icon={<Dumbbell size={20}/>} label="Workout Protocol" />
+          <SidebarItem id="fuel" icon={<Utensils size={20}/>} label="Nutrition Lab" />
+          <SidebarItem id="recovery" icon={<Moon size={20}/>} label="Recovery Suite" />
+          <SidebarItem id="profile" icon={<Trophy size={20}/>} label="Performance Stats" />
+        </nav>
+
+        <div className="pt-8 border-t border-slate-50">
+          <button className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all duration-300">
+            <LogOut size={20} />
+            <span className="font-bold text-sm tracking-tight">Logout</span>
+          </button>
         </div>
-      )}
+      </aside>
 
-      {/* TRACKER VIEW */}
-      {view === 'tracker' && (
-        <div className="relative z-10 h-full">
-          <CalorieTracker onBack={() => setView('hub')} plannerData={result} onLogActivity={() => logActivity('meal')} />
-        </div>
-      )}
-
-      {/* SLEEP VIEW */}
-      {view === 'sleep' && (
-        <div className="relative z-10 h-full">
-           <SleepTracker onBack={() => setView('hub')} onLogActivity={(type) => logActivity(type)} />
-        </div>
-      )}
-
-      {/* STATS VIEW */}
-      {view === 'stats' && (
-        <div className="relative z-10 h-full">
-           <StreakStats onBack={() => setView('hub')} activityData={activityLog} />
-        </div>
-      )}
-
+      {/* MAIN CONTENT AREA */}
+      <main className="flex-1 flex flex-col h-full overflow-hidden relative">
+        {renderActiveScreen()}
+      </main>
     </div>
   );
 };

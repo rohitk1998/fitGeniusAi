@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { UserProfile, FitnessResponse, MealMacro, RecoveryAnalysis } from "../types";
 
@@ -42,7 +41,7 @@ export const generateFitnessPlan = async (profile: UserProfile): Promise<Fitness
   `;
 
   const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
+    model: "gemini-3-pro-preview",
     contents: prompt,
     config: {
       responseMimeType: "application/json",
@@ -149,7 +148,7 @@ export const analyzeFoodContent = async (foodDescription: string): Promise<MealM
   `;
 
   const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
+    model: "gemini-3-flash-preview",
     contents: prompt,
     config: {
       responseMimeType: "application/json",
@@ -184,7 +183,7 @@ export const analyzeRecovery = async (hours: number, quality: string, soreness: 
   `;
 
   const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
+    model: "gemini-3-flash-preview",
     contents: prompt,
     config: {
       responseMimeType: "application/json",
