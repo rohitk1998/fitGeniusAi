@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-
 interface SplashScreenProps {
   onFinish: () => void;
   minDuration?: number;
 }
 
-const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, minDuration = 2200 }) => {
+const SplashScreen: React.FC<SplashScreenProps> = ({
+  onFinish,
+  minDuration = 2200,
+}) => {
   const [phase, setPhase] = useState<'visible' | 'exiting'>('visible');
   const hasFinished = useRef(false);
 
@@ -39,31 +41,16 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, minDuration = 220
       aria-label="Splash screen"
       aria-hidden={phase === 'exiting'}
     >
-      {/* Soft radial glow behind logo */}
       <div
         className="absolute inset-0 opacity-40"
         style={{
-          background: 'radial-gradient(ellipse 80% 50% at 50% 45%, rgba(99, 102, 241, 0.35) 0%, transparent 60%)',
+          background:
+            'radial-gradient(ellipse 80% 50% at 50% 45%, rgba(99, 102, 241, 0.35) 0%, transparent 60%)',
         }}
       />
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center px-6">
-        {/* Animated logo GIF */}
-        <div
-          className={`
-            mb-8 transition-all duration-700 ease-out
-            ${phase === 'visible' ? 'splash-logo-enter' : 'splash-logo-exit'}
-          `}
-        >
-          <img
-            src="/fitaura-logo.gif"
-            alt="FitAura.AI logo"
-            className="w-40 sm:w-48 h-auto"
-          />
-        </div>
-
-        {/* Brand name */}
         <h1
           className={`
             text-4xl sm:text-5xl font-black tracking-tight text-white mb-2
@@ -83,8 +70,6 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, minDuration = 220
         >
           Your biological edge
         </p>
-
-        {/* Progress bar */}
         <div
           className={`
             mt-12 w-32 h-0.5 rounded-full bg-white/10 overflow-hidden
@@ -98,11 +83,6 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish, minDuration = 220
           />
         </div>
       </div>
-
-      {/* Tap to continue hint */}
-      <p className="absolute bottom-8 left-0 right-0 text-center text-slate-500 text-xs font-medium opacity-0 splash-skip-hint pointer-events-none">
-        Tap to continue
-      </p>
     </button>
   );
 };
