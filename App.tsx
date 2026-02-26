@@ -8,7 +8,6 @@ import { useAppState } from './hooks/useAppState';
 import { useAuth } from './hooks/useAuth';
 import type { TabType } from './constants/navigation';
 import type { FitnessResponse } from './types';
-//jdhkjashdkjhasdj
 /** Returns true if a cached user credential snapshot exists in localStorage. */
 function hasCachedUser(): boolean {
   try {
