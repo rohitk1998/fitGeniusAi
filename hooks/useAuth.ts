@@ -4,7 +4,6 @@ import { supabase } from '../lib/supabaseClient';
 
 const USER_STORAGE_KEY = 'fitaura_user';
 
-/** Lightweight snapshot saved to localStorage after a successful auth. */
 interface StoredUser {
     id: string;
     email: string | undefined;
@@ -21,13 +20,21 @@ function saveUserToStorage(user: User): void {
     };
     try {
         localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(snapshot));
-    } catch { /* quota / private-mode — silently ignore */ }
+    } catch { }
 }
 
 function clearUserFromStorage(): void {
     try {
         localStorage.removeItem(USER_STORAGE_KEY);
-    } catch { /* ignore */ }
+    } catch { }
+}
+
+export function hasCachedUser(): boolean {
+    try {
+        return !!localStorage.getItem(USER_STORAGE_KEY);
+    } catch {
+        return false;
+    }
 }
 
 interface UseAuthReturn {
@@ -43,21 +50,19 @@ export function useAuth(): UseAuthReturn {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Rehydrate existing session on mount
         supabase.auth.getSession().then(({ data }) => {
             setSession(data.session);
             if (data.session?.user) saveUserToStorage(data.session.user);
             setLoading(false);
         });
 
-        // Listen for auth state changes (login, logout, token refresh)
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+        const {
+            data: { subscription },
+        } = supabase.auth.onAuthStateChange((_event, newSession) => {
             setSession(newSession);
             if (newSession?.user) {
-                // Persist credentials to localStorage on every successful auth
                 saveUserToStorage(newSession.user);
             } else {
-                // Session gone (sign-out / expiry) — clear stored credentials
                 clearUserFromStorage();
             }
             setLoading(false);

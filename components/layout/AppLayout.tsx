@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, FC, ReactNode } from 'react';
 import { Trophy, Bell, User, LogOut } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import type { TabType } from '../../constants/navigation';
@@ -7,12 +7,12 @@ import BottomNav from './BottomNav';
 interface AppLayoutProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
-  children: React.ReactNode;
+  children: ReactNode;
   user: SupabaseUser | null;
   onSignOut: () => Promise<void>;
 }
 
-const AppLayout: React.FC<AppLayoutProps> = ({ activeTab, onTabChange, children, user, onSignOut }) => {
+const AppLayout: FC<AppLayoutProps> = ({ activeTab, onTabChange, children, user, onSignOut }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 

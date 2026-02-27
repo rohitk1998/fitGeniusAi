@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, FC, ReactNode } from 'react';
 import { Plus, Trash2, Flame, Utensils, ArrowLeft, Sparkles, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Meal, FitnessResponse } from '../types';
 import { analyzeFoodContent } from '../services/geminiService';
@@ -30,7 +30,7 @@ const PRESET_MEALS: PresetItem[] = [
 
 const toDateStr = (d: Date) => d.toISOString().split('T')[0];
 
-const CalorieTracker: React.FC<CalorieTrackerProps> = ({ onBack, plannerData, onLogActivity }) => {
+const CalorieTracker: FC<CalorieTrackerProps> = ({ onBack, plannerData, onLogActivity }) => {
   const [meals, setMeals] = useState<Meal[]>(() => {
     try {
       const saved = localStorage.getItem('fitaura_meals');
@@ -334,7 +334,7 @@ function MacroCard({
   current: number;
   goal: number;
   unit: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
 }) {
   const pct = goal ? Math.min(100, (current / goal) * 100) : 0;
   return (

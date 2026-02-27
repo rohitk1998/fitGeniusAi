@@ -1,13 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
-interface SplashScreenProps {
-  onFinish: () => void;
-  minDuration?: number;
-}
+import { type FC, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAppSelector } from '../store/hooks';
+import { OnboardingStory, PreviewScreen } from '../routes/routes';
 
-const SplashScreen: React.FC<SplashScreenProps> = ({
-  onFinish,
-  minDuration = 2200,
-}) => {
+const SplashScreen: FC = () => {
+  const navigate = useNavigate();
+  const isDone = useAppSelector((s) => s.onboarding.isDone);
   const [phase, setPhase] = useState<'visible' | 'exiting'>('visible');
   const hasFinished = useRef(false);
 
@@ -18,15 +16,19 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
   };
 
   useEffect(() => {
-    const timer = setTimeout(finish, minDuration);
+    OnboardingStory.preload();
+    PreviewScreen.preload();
+    const timer = setTimeout(finish, 2200);
     return () => clearTimeout(timer);
-  }, [minDuration]);
+  }, []);
 
   useEffect(() => {
     if (phase !== 'exiting') return;
-    const timer = setTimeout(onFinish, 400);
+    const timer = setTimeout(() => {
+      navigate(isDone ? '/preview' : '/onboarding');
+    }, 400);
     return () => clearTimeout(timer);
-  }, [phase, onFinish]);
+  }, [phase, isDone, navigate]);
 
   return (
     <button
@@ -49,7 +51,6 @@ const SplashScreen: React.FC<SplashScreenProps> = ({
         }}
       />
 
-      {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center px-6">
         <h1
           className={`

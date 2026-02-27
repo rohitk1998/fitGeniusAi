@@ -1,4 +1,4 @@
-import React from 'react';
+import { FC } from 'react';
 import type { TabType } from '../constants/navigation';
 import type { FitnessResponse, ActivityRecord } from '../types';
 import ResultView from './ResultView';
@@ -17,7 +17,7 @@ interface MainContentProps {
   logActivity: (type: 'planner' | 'meal' | 'sleep') => void;
 }
 
-const MainContent: React.FC<MainContentProps> = ({
+const MainContent: FC<MainContentProps> = ({
   activeTab,
   result,
   activityLog,

@@ -1,12 +1,11 @@
-import React from 'react';
+import { FC } from 'react';
 import { Bell, User, Moon, Dumbbell } from 'lucide-react';
-
 interface DashboardScreenProps {
   hasPlan: boolean;
   onOpenPlanner: () => void;
 }
 
-const DashboardScreen: React.FC<DashboardScreenProps> = ({
+const DashboardScreen: FC<DashboardScreenProps> = ({
   hasPlan,
   onOpenPlanner,
 }) => (

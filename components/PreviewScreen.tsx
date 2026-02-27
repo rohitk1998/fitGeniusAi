@@ -1,16 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState, FC } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Trophy, Flame, Calendar, Target, ChevronRight, Loader2 } from 'lucide-react';
 import { generateFitnessPlan } from '../services/geminiService';
 import { mapOnboardingToProfile } from '../utils/mapOnboardingToProfile';
-import type { FitnessResponse } from '../types';
+import { useAuth } from '../hooks/useAuth';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { setSigningIn, setPlan } from '../store/authSlice';
 
-interface AuthScreenProps {
-    onPlanReady: (plan: FitnessResponse) => void;
-    onSignIn: () => Promise<void>;
-    signingIn: boolean;
-}
-
-const SkeletonCard: React.FC = () => (
+const SkeletonCard: FC = () => (
     <div className="animate-pulse space-y-3 bg-white/60 rounded-2xl p-4 border border-slate-100">
         <div className="h-3 bg-slate-200 rounded-full w-2/3" />
         <div className="h-3 bg-slate-200 rounded-full w-full" />
@@ -18,54 +15,61 @@ const SkeletonCard: React.FC = () => (
     </div>
 );
 
-const AuthScreen: React.FC<AuthScreenProps> = ({ onPlanReady, onSignIn, signingIn }) => {
-    const [plan, setPlan] = useState<FitnessResponse | null>(null);
-    const [generating, setGenerating] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+const PreviewScreen: FC = () => {
+    const navigate = useNavigate();
+    const dispatch = useAppDispatch();
+    const { signingIn, plan } = useAppSelector((s) => s.auth);
+    const answers = useAppSelector((s) => s.onboarding.answers);
+    const { session, signInWithGoogle } = useAuth();
 
-    // Read onboarding answers from localStorage
-    const answers: Record<string, string> = (() => {
-        try {
-            return JSON.parse(localStorage.getItem('fitaura_onboarding') ?? '{}');
-        } catch {
-            return {};
-        }
-    })();
+    const [generating, setGenerating] = useState(!plan);
+    const [error, setError] = useState<string | null>(null);
 
     const userName = answers.name ? answers.name.split(' ')[0] : 'there';
 
     useEffect(() => {
-        // Check if we already generated a plan this session
+        if (session) {
+            navigate('/app/dashboard');
+            return;
+        }
+    }, [session, navigate]);
+
+    useEffect(() => {
+        if (plan) {
+            setGenerating(false);
+            return;
+        }
+
         const cached = localStorage.getItem('fitaura_auth_plan');
         if (cached) {
             try {
-                const parsed = JSON.parse(cached) as FitnessResponse;
-                setPlan(parsed);
-                onPlanReady(parsed);
+                const parsed = JSON.parse(cached);
+                dispatch(setPlan(parsed));
                 setGenerating(false);
                 return;
-            } catch { /* fall through to generate */ }
+            } catch { }
         }
 
         const profile = mapOnboardingToProfile(answers);
         generateFitnessPlan(profile)
             .then((result) => {
-                setPlan(result);
-                onPlanReady(result);
+                dispatch(setPlan(result));
                 localStorage.setItem('fitaura_auth_plan', JSON.stringify(result));
                 setGenerating(false);
             })
-            .catch((err) => {
-                console.error(err);
+            .catch(() => {
                 setError('Could not generate your plan. Please try again.');
                 setGenerating(false);
             });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const handleSignIn = async () => {
+        dispatch(setSigningIn(true));
+        await signInWithGoogle();
+    };
 
     return (
         <div className="fixed inset-0 z-[80] flex flex-col bg-gradient-to-br from-slate-50 via-indigo-50 to-slate-100 overflow-y-auto safe-area-pb">
-            {/* Header */}
             <div className="flex items-center gap-2 px-6 pt-10 pb-2">
                 <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center shadow-md">
                     <Trophy size={18} className="text-white" />
@@ -75,7 +79,6 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onPlanReady, onSignIn, signingI
                 </span>
             </div>
 
-            {/* Hero text */}
             <div className="px-6 pt-6 pb-4">
                 <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 leading-tight">
                     Hey {userName}, your plan<br />
@@ -86,7 +89,6 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onPlanReady, onSignIn, signingI
                 </p>
             </div>
 
-            {/* Highlights card */}
             <div className="flex-1 px-5 pb-4 space-y-3">
                 {generating ? (
                     <>
@@ -103,13 +105,11 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onPlanReady, onSignIn, signingI
                     </div>
                 ) : plan ? (
                     <>
-                        {/* Summary */}
                         <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
                             <p className="text-xs font-semibold uppercase tracking-widest text-indigo-500 mb-1">Your Plan</p>
                             <p className="text-sm text-slate-700 leading-relaxed line-clamp-3">{plan.summary}</p>
                         </div>
 
-                        {/* Macros */}
                         <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
                             <div className="flex items-center gap-2 mb-3">
                                 <Flame size={16} className="text-orange-500" />
@@ -130,7 +130,6 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onPlanReady, onSignIn, signingI
                             </div>
                         </div>
 
-                        {/* Day 1 workout */}
                         {plan.weeklySchedule?.[0] && (
                             <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
                                 <div className="flex items-center gap-2 mb-3">
@@ -156,7 +155,6 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onPlanReady, onSignIn, signingI
                             </div>
                         )}
 
-                        {/* Month 1 milestone */}
                         {plan.milestones?.[0] && (
                             <div className="bg-indigo-50 rounded-2xl p-4 border border-indigo-100 shadow-sm">
                                 <div className="flex items-center gap-2 mb-1">
@@ -174,18 +172,16 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onPlanReady, onSignIn, signingI
                 ) : null}
             </div>
 
-            {/* Google Sign-In CTA */}
             <div className="sticky bottom-0 px-5 pb-8 pt-3 bg-gradient-to-t from-slate-100 via-slate-100/90 to-transparent">
                 <button
                     type="button"
-                    onClick={onSignIn}
+                    onClick={handleSignIn}
                     disabled={signingIn}
                     className="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 rounded-2xl py-4 px-6 shadow-md hover:shadow-lg hover:border-indigo-300 transition-all duration-200 active:scale-[0.98] disabled:opacity-60"
                 >
                     {signingIn ? (
                         <Loader2 size={20} className="animate-spin text-indigo-500" />
                     ) : (
-                        /* Google "G" SVG */
                         <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
                             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
                             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
@@ -206,4 +202,4 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onPlanReady, onSignIn, signingI
     );
 };
 
-export default AuthScreen;
+export default PreviewScreen;

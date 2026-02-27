@@ -49,7 +49,7 @@ export const generateFitnessPlan = async (profile: UserProfile): Promise<Fitness
   `;
 
   const response = await getAI().models.generateContent({
-    model: "gemini-3-pro-preview",
+    model: "gemini-2.5-flash",
     contents: prompt,
     config: {
       responseMimeType: "application/json",
