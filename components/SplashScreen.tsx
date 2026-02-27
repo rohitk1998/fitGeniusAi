@@ -2,6 +2,7 @@ import { type FC, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../store/hooks';
 import { OnboardingStory, PreviewScreen } from '../routes/routes';
+import splashVideo from '../assets/splash_video.mp4';
 
 const SplashScreen: FC = () => {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ const SplashScreen: FC = () => {
   useEffect(() => {
     OnboardingStory.preload();
     PreviewScreen.preload();
-    const timer = setTimeout(finish, 2200);
+    const timer = setTimeout(finish, 5000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -36,27 +37,31 @@ const SplashScreen: FC = () => {
       onClick={finish}
       className={`
         fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden cursor-default
-        bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900
         transition-opacity duration-400 ease-out
         ${phase === 'exiting' ? 'opacity-0' : 'opacity-100'}
       `}
       aria-label="Splash screen"
       aria-hidden={phase === 'exiting'}
     >
-      <div
-        className="absolute inset-0 opacity-40"
-        style={{
-          background:
-            'radial-gradient(ellipse 80% 50% at 50% 45%, rgba(99, 102, 241, 0.35) 0%, transparent 60%)',
-        }}
+      {/* Fullscreen video background */}
+      <video
+        src={splashVideo}
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
       />
 
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/50" />
+
+      {/* Logo + text overlay */}
       <div className="relative z-10 flex flex-col items-center justify-center px-6">
         <h1
           className={`
             text-4xl sm:text-5xl font-black tracking-tight text-white mb-2
             transition-all duration-700 ease-out delay-150
-            animate-fade-in
             ${phase === 'visible' ? 'splash-text-enter' : 'splash-text-exit'}
           `}
         >
@@ -64,7 +69,7 @@ const SplashScreen: FC = () => {
         </h1>
         <p
           className={`
-            text-slate-400 font-medium text-sm sm:text-base tracking-wide
+            text-slate-300 font-medium text-sm sm:text-base tracking-wide
             transition-all duration-700 ease-out delay-300
             ${phase === 'visible' ? 'splash-text-enter' : 'splash-text-exit'}
           `}
